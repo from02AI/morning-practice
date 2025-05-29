@@ -1,0 +1,28 @@
+# Dependencies
+/node_modules
+
+# Next.js build output
+/.next/
+/out/
+
+# Production build
+/build
+
+# Environment variables
+.env*.local
+!.env.example
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json # Optional: some prefer to commit this, some don't for libraries
+                  # For applications, it's generally recommended to commit it.
+                  # Since you deleted it earlier, let's add it for now to ensure consistent installs.
+                  # If you want to ignore it, add it here. Otherwise, leave it out of .gitignore.
+
+# Optional Cursor-specific
+.cursor-cache/
