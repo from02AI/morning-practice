@@ -4,8 +4,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 
+// Define Exercise type
+interface Exercise {
+  name: string;
+  description: string;
+}
+
 // List of exercises to shuffle
-const exercises = [
+const exercises: Exercise[] = [
   {
     name: "Cat-Cow Pose",
     description: "On hands and knees, alternate arching (cow) and rounding (cat) your spine."
@@ -110,17 +116,19 @@ export default function MorningPracticeApp() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [exerciseIndex, setExerciseIndex] = useState(0);
-  const [shuffledExercises, setShuffledExercises] = useState<any[]>([]);
+  const [shuffledExercises, setShuffledExercises] = useState<Exercise[]>([]);
   const [totalExercises, setTotalExercises] = useState(10);
   const [isMuted, setIsMuted] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const speechSynthesisRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
+  const speechSynthesisRef = useRef<SpeechSynthesis | null>(typeof window !== 'undefined' ? window.speechSynthesis : null);
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize audio context
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      audioContextRef.current = new AudioContextClass();
     } catch (e) {
       console.log('Web Audio API is not supported in this browser');
     }
@@ -185,7 +193,7 @@ export default function MorningPracticeApp() {
   };
 
   // Fisher-Yates shuffle algorithm
-  const shuffleExercises = () => {
+  const shuffleExercises = (): Exercise[] => {
     const shuffled = [...exercises];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -264,20 +272,26 @@ export default function MorningPracticeApp() {
 
   // Handle timer and practice transitions
   useEffect(() => {
-    let interval: number | null = null;
-    
     if (isTimerActive && timeLeft > 0) {
-      interval = setInterval(() => {
+      // Clear any existing interval
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+      }
+      
+      // Set new interval
+      intervalIdRef.current = setInterval(() => {
         // Play a soft gong at the last second of each counter
         if (timeLeft === 1) {
           playMeditationBell();
         }
-        
-        setTimeLeft(timeLeft - 1);
-      }, 1000) as number;
+        // Use functional update for setTimeLeft
+        setTimeLeft(prevTimeLeft => prevTimeLeft - 1);
+      }, 1000);
     } else if (isTimerActive && timeLeft === 0) {
-      if (interval !== null) {
-        clearInterval(interval);
+      // Clear interval when timer reaches 0
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
       }
       
       // Transition to next stage
@@ -305,8 +319,14 @@ export default function MorningPracticeApp() {
       }
     }
     
-    return () => clearInterval(interval);
-  }, [isTimerActive, timeLeft, exerciseIndex, stage, totalExercises, isMuted]);
+    // Cleanup function to clear interval
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
+      }
+    };
+  }, [isTimerActive, timeLeft, stage, exerciseIndex, totalExercises, isMuted]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
