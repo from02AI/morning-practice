@@ -47,7 +47,7 @@ const STAGES = {
 };
 
 export default function MorningPracticeApp() {
-  const [stage, setStage] = useState(STAGES.COMPLETE);
+  const [stage, setStage] = useState(STAGES.START);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [exerciseIndex, setExerciseIndex] = useState(0);
@@ -155,7 +155,7 @@ export default function MorningPracticeApp() {
   const startPractice = useCallback(() => {
     shuffleAndSetExercises();
     setStage(STAGES.WARM_UP);
-    setTimeLeft(5); // 1 minute warm-up
+    setTimeLeft(60); // 1 minute warm-up
     setIsTimerActive(true);
     speak("Warm up time. Perform slow stretching and easy movements from head to feet.");
   }, [shuffleAndSetExercises, speak]);
@@ -203,7 +203,7 @@ export default function MorningPracticeApp() {
       if (intervalIdRef.current) {
         clearInterval(intervalIdRef.current);
       }
-      setTimeLeft(5); // Use 5 seconds for warm-up/cool-down for testing
+      setTimeLeft(60); // Use 5 seconds for warm-up/cool-down for testing
       setIsTimerActive(true);
     } else if (stage === STAGES.EXERCISE) {
       if (intervalIdRef.current) {
